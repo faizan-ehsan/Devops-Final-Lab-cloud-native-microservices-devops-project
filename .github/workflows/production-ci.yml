@@ -1,0 +1,46 @@
+name: Production CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  production-quality-gate:
+    name: Production Release Gate Verification
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 1. Checkout Code
+      uses: actions/checkout@v3
+
+    - name: 2. Setup Node.js Environment
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18.x
+        cache: 'npm'
+        cache-dependency-path: |
+          src/user-service/package-lock.json
+          src/product-service/package-lock.json
+          src/order-service/package-lock.json
+          src/notification-service/package-lock.json
+          src/frontend/package-lock.json
+
+    - name: 3. Install Microservice Dependencies
+      run: |
+        npm --prefix src/user-service ci
+        npm --prefix src/product-service ci
+        npm --prefix src/order-service ci
+        npm --prefix src/notification-service ci
+        npm --prefix src/frontend ci
+
+    - name: 4. Jest Testing Suite (Production Level)
+      run: |
+        npm --prefix src/user-service test
+        npm --prefix src/product-service test
+        npm --prefix src/order-service test
+        npm --prefix src/notification-service test
+
+    - name: 5. Verify Frontend Production Assets Compile
+      run: |
+        npm --prefix src/frontend run build

@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ecom-deployer-sa
+  namespace: ecom-dev
+---
+# Namespace scoped role for microservices management
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ecom-developer-role
+  namespace: ecom-dev
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "services", "configmaps", "secrets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets", "replicasets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ecom-developer-rb
+  namespace: ecom-dev
+subjects:
+  - kind: ServiceAccount
+    name: ecom-deployer-sa
+    namespace: ecom-dev
+roleRef:
+  kind: Role
+  name: ecom-developer-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# Cluster scoped role for auditing and global monitoring
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: ecom-reader-clusterrole
+rules:
+  - apiGroups: [""]
+    resources: ["nodes", "namespaces", "persistentvolumes"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ecom-reader-crb
+subjects:
+  - kind: ServiceAccount
+    name: ecom-deployer-sa
+    namespace: ecom-dev
+roleRef:
+  kind: ClusterRole
+  name: ecom-reader-clusterrole
+  apiGroup: rbac.authorization.k8s.io

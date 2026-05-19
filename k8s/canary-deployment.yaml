@@ -1,0 +1,137 @@
+# ====================================================
+# CANARY DEPLOYMENT WORKFLOW (Weighted Traffic Split)
+# ====================================================
+
+# STABLE Deployment: v1.0.0 (Handles 90% of requests)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service-stable
+  namespace: ecom-dev
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: user-service
+      version: stable
+  template:
+    metadata:
+      labels:
+        app: user-service
+        version: stable
+    spec:
+      containers:
+      - name: user-service
+        image: myrepo/user-service:v1.0.0
+        ports:
+        - containerPort: 5001
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 300m
+            memory: 256Mi
+---
+# STABLE Service Endpoint
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service-stable
+  namespace: ecom-dev
+spec:
+  ports:
+  - port: 5001
+    targetPort: 5001
+  selector:
+    app: user-service
+    version: stable
+---
+# CANARY Deployment: v1.1.0 (New Release - Handles 10% of requests for validation)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service-canary
+  namespace: ecom-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-service
+      version: canary
+  template:
+    metadata:
+      labels:
+        app: user-service
+        version: canary
+    spec:
+      containers:
+      - name: user-service
+        image: myrepo/user-service:v1.1.0
+        ports:
+        - containerPort: 5001
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 300m
+            memory: 256Mi
+---
+# CANARY Service Endpoint
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service-canary
+  namespace: ecom-dev
+spec:
+  ports:
+  - port: 5001
+    targetPort: 5001
+  selector:
+    app: user-service
+    version: canary
+---
+# Central Stable Ingress Rule
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: user-service-stable-ingress
+  namespace: ecom-dev
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+  - host: ecom.devops.local
+    http:
+      paths:
+      - path: /api/auth
+        pathType: Prefix
+        backend:
+          service:
+            name: user-service-stable
+            port:
+              number: 5001
+---
+# CANARY INGRESS RULE: Splits exactly 10% of traffic to the Canary Service
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: user-service-canary-ingress
+  namespace: ecom-dev
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/canary: "true"         # Identifies this Ingress as Canary
+    nginx.ingress.kubernetes.io/canary-weight: "10"    # Routes exactly 10% traffic to canary
+spec:
+  rules:
+  - host: ecom.devops.local
+    http:
+      paths:
+      - path: /api/auth
+        pathType: Prefix
+        backend:
+          service:
+            name: user-service-canary
+            port:
+              number: 5001

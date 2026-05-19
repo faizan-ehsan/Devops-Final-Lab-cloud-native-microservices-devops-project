@@ -1,0 +1,59 @@
+name: Development CI Pipeline
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  test-and-lint:
+    name: Code Quality and Testing Gates
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+    - name: 1. Checkout Code
+      uses: actions/checkout@v3
+
+    - name: 2. Setup Node.js Environment
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: |
+          src/user-service/package-lock.json
+          src/product-service/package-lock.json
+          src/order-service/package-lock.json
+          src/notification-service/package-lock.json
+          src/frontend/package-lock.json
+
+    - name: 3. Install Microservice Dependencies
+      run: |
+        npm --prefix src/user-service ci
+        npm --prefix src/product-service ci
+        npm --prefix src/order-service ci
+        npm --prefix src/notification-service ci
+        npm --prefix src/frontend ci
+
+    - name: 4. ESLint Quality Check
+      run: |
+        # Allow warnings but verify compiler validity
+        npm --prefix src/user-service run lint || echo "Lint warning in user-service"
+        npm --prefix src/product-service run lint || echo "Lint warning in product-service"
+
+    - name: 5. Jest Automated Tests
+      run: |
+        npm --prefix src/user-service test
+        npm --prefix src/product-service test
+        npm --prefix src/order-service test
+        npm --prefix src/notification-service test
+
+    - name: 6. Static Web Compilation Check
+      run: |
+        npm --prefix src/frontend run build

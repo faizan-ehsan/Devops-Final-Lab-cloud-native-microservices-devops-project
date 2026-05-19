@@ -1,0 +1,91 @@
+# ====================================================
+# RENDER.COM BLUEPRINT SPECIFICATION (Staging/Production)
+# ====================================================
+services:
+  # ----------------------------------------------------
+  # 1. User Authentication Microservice
+  # ----------------------------------------------------
+  - type: web
+    name: octane-user-service
+    env: node
+    plan: free
+    rootDir: src/user-service
+    buildCommand: npm ci
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 5001
+      - key: MONGO_URI
+        value: mongodb+srv://dbuser:securepassword@cluster.mongodb.net/user_db
+      - key: JWT_SECRET
+        sync: true # Requires setting inside Render UI Dashboard
+
+  # ----------------------------------------------------
+  # 2. Product Catalogue Microservice
+  # ----------------------------------------------------
+  - type: web
+    name: octane-product-service
+    env: node
+    plan: free
+    rootDir: src/product-service
+    buildCommand: npm ci
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 5002
+      - key: MONGO_URI
+        value: mongodb+srv://dbuser:securepassword@cluster.mongodb.net/product_db
+
+  # ----------------------------------------------------
+  # 3. Order Processing Microservice
+  # ----------------------------------------------------
+  - type: web
+    name: octane-order-service
+    env: node
+    plan: free
+    rootDir: src/order-service
+    buildCommand: npm ci
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 5003
+      - key: MONGO_URI
+        value: mongodb+srv://dbuser:securepassword@cluster.mongodb.net/order_db
+      - key: PRODUCT_SERVICE_URL
+        fromService:
+          name: octane-product-service
+          type: web
+          property: host
+      - key: NOTIFICATION_SERVICE_URL
+        fromService:
+          name: octane-notification-service
+          type: web
+          property: host
+
+  # ----------------------------------------------------
+  # 4. Notification Subscriber Microservice
+  # ----------------------------------------------------
+  - type: web
+    name: octane-notification-service
+    env: node
+    plan: free
+    rootDir: src/notification-service
+    buildCommand: npm ci
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 5004
+
+  # ----------------------------------------------------
+  # 5. Static Frontend User Interface Web Service
+  # ----------------------------------------------------
+  - type: web
+    name: octane-frontend-ui
+    env: static
+    plan: free
+    rootDir: src/frontend
+    buildCommand: npm ci && npm run build
+    publishDir: dist
+    headers:
+      - key: Cache-Control
+        value: public, max-age=31536000

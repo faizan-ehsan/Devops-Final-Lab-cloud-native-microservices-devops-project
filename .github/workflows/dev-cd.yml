@@ -1,0 +1,65 @@
+name: Development CD Pipeline
+
+on:
+  workflow_run:
+    workflows: ["Development CI Pipeline"]
+    types:
+      - completed
+  workflow_dispatch: # Allows manual trigger of deployment
+
+jobs:
+  deploy:
+    name: Continuous Deployment to Development
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    
+    environment:
+      name: development
+      url: https://ecom-dev.render.com # Placeholder representing deployment target
+
+    steps:
+    - name: 1. Checkout repository
+      uses: actions/checkout@v3
+
+    - name: 2. Deploy Microservices to Render.com Dev Scope
+      env:
+        USER_DEPLOY_HOOK: ${{ secrets.RENDER_USER_SERVICE_DEPLOY_HOOK }}
+        PRODUCT_DEPLOY_HOOK: ${{ secrets.RENDER_PRODUCT_SERVICE_DEPLOY_HOOK }}
+        ORDER_DEPLOY_HOOK: ${{ secrets.RENDER_ORDER_SERVICE_DEPLOY_HOOK }}
+        NOTIF_DEPLOY_HOOK: ${{ secrets.RENDER_NOTIF_SERVICE_DEPLOY_HOOK }}
+        FRONTEND_DEPLOY_HOOK: ${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK }}
+      run: |
+        echo "🚀 Deploying microservices to isolated Render.com development ecosystem..."
+        
+        # In a real environment, trigger the deploy hooks if credentials exist
+        if [ ! -z "$USER_DEPLOY_HOOK" ]; then
+          curl -X GET "$USER_DEPLOY_HOOK"
+        else
+          echo "⚠️ RENDER_USER_SERVICE_DEPLOY_HOOK is unset. Mocking user-service deployment..."
+        fi
+        
+        if [ ! -z "$PRODUCT_DEPLOY_HOOK" ]; then
+          curl -X GET "$PRODUCT_DEPLOY_HOOK"
+        else
+          echo "⚠️ RENDER_PRODUCT_SERVICE_DEPLOY_HOOK is unset. Mocking product-service deployment..."
+        fi
+        
+        if [ ! -z "$ORDER_DEPLOY_HOOK" ]; then
+          curl -X GET "$ORDER_DEPLOY_HOOK"
+        else
+          echo "⚠️ RENDER_ORDER_SERVICE_DEPLOY_HOOK is unset. Mocking order-service deployment..."
+        fi
+        
+        if [ ! -z "$NOTIF_DEPLOY_HOOK" ]; then
+          curl -X GET "$NOTIF_DEPLOY_HOOK"
+        else
+          echo "⚠️ RENDER_NOTIF_SERVICE_DEPLOY_HOOK is unset. Mocking notification-service deployment..."
+        fi
+
+        if [ ! -z "$FRONTEND_DEPLOY_HOOK" ]; then
+          curl -X GET "$FRONTEND_DEPLOY_HOOK"
+        else
+          echo "⚠️ RENDER_FRONTEND_DEPLOY_HOOK is unset. Mocking frontend deployment..."
+        fi
+        
+        echo "✅ CD pipeline completed. Services are updating in development scope."

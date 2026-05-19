@@ -1,0 +1,43 @@
+name: Staging CD Pipeline
+
+on:
+  workflow_run:
+    workflows: ["Staging CI Pipeline"]
+    types:
+      - completed
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Continuous Deployment to Staging
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    
+    environment:
+      name: staging
+      url: https://ecom-staging.render.com
+
+    steps:
+    - name: 1. Checkout repository
+      uses: actions/checkout@v3
+
+    - name: 2. Deploy Microservices to Render.com Staging Scope
+      env:
+        USER_DEPLOY_HOOK: ${{ secrets.RENDER_STAGING_USER_DEPLOY_HOOK }}
+        PRODUCT_DEPLOY_HOOK: ${{ secrets.RENDER_STAGING_PRODUCT_DEPLOY_HOOK }}
+      run: |
+        echo "🚀 Deploying microservices to isolated Render.com staging ecosystem..."
+        
+        if [ ! -z "$USER_DEPLOY_HOOK" ]; then
+          curl -X GET "$USER_DEPLOY_HOOK"
+        else
+          echo "⚠️ RENDER_STAGING_USER_DEPLOY_HOOK is unset. Mocking user-service staging deployment..."
+        fi
+        
+        if [ ! -z "$PRODUCT_DEPLOY_HOOK" ]; then
+          curl -X GET "$PRODUCT_DEPLOY_HOOK"
+        else
+          echo "⚠️ RENDER_STAGING_PRODUCT_DEPLOY_HOOK is unset. Mocking product-service staging deployment..."
+        fi
+        
+        echo "✅ CD pipeline completed. Services are updating in staging scope."

@@ -1,0 +1,25 @@
+# Local Node.js dependencies
+node_modules/
+npm-debug.log
+
+# Git repositories and configurations
+.git
+.github
+.gitignore
+
+# Kubernetes manifests and infrastructure specs
+k8s/
+monitoring/
+render.yaml
+Jenkinsfile
+
+# Development configuration and build reports
+dist/
+build/
+coverage/
+.idea/
+.vscode/
+
+# Local text files
+README.md
+*.pdf

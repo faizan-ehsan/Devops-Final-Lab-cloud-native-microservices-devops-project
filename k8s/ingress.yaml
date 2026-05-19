@@ -1,0 +1,58 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ecom-ingress
+  namespace: ecom-dev
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+spec:
+  rules:
+  - host: ecom.devops.local
+    http:
+      paths:
+        # Frontend web routing
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: frontend
+              port:
+                number: 3000
+                
+        # Auth routing
+        - path: /api/auth
+          pathType: Prefix
+          backend:
+            service:
+              name: user-service
+              port:
+                number: 5001
+                
+        # Product routing
+        - path: /api/products
+          pathType: Prefix
+          backend:
+            service:
+              name: product-service
+              port:
+                number: 5002
+                
+        # Order routing
+        - path: /api/orders
+          pathType: Prefix
+          backend:
+            service:
+              name: order-service
+              port:
+                number: 5003
+                
+        # Notification routing
+        - path: /api/notifications
+          pathType: Prefix
+          backend:
+            service:
+              name: notification-service
+              port:
+                number: 5004

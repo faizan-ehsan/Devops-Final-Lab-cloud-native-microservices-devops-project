@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ecom-config
+  namespace: ecom-dev
+data:
+  PRODUCT_SERVICE_URL: "http://product-service:5002"
+  NOTIFICATION_SERVICE_URL: "http://notification-service:5004"
+  MONGO_USER_DB: "mongodb://mongodb-service:27017/ecom_user"
+  MONGO_PRODUCT_DB: "mongodb://mongodb-service:27017/ecom_product"
+  MONGO_ORDER_DB: "mongodb://mongodb-service:27017/ecom_order"
+  RABBITMQ_URI: "amqp://rabbitmq-service:5672"

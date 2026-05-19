@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  namespace: ecom-dev
+  labels:
+    app: user-service
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+      - name: user-service
+        image: user-service:v1.0.0
+        ports:
+        - containerPort: 5001
+        
+        # Resource allocations to prevent cluster exhaustion and OOM kills
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 256Mi
+            
+        # Environment injection from ConfigMap and Secrets
+        env:
+        - name: PORT
+          value: "5001"
+        - name: MONGO_URI
+          valueFrom:
+            configMapKeyRef:
+              name: ecom-config
+              key: MONGO_USER_DB
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: ecom-secrets
+              key: JWT_SECRET
+              
+        # Liveness & Readiness Probes for self-healing
+        livenessProbe:
+          httpGet:
+            path: /health/liveness
+            port: 5001
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health/readiness
+            port: 5001
+          initialDelaySeconds: 10
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  namespace: ecom-dev
+spec:
+  ports:
+  - port: 5001
+    targetPort: 5001
+    protocol: TCP
+  selector:
+    app: user-service

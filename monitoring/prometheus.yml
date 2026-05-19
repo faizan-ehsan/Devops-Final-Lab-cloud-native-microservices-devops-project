@@ -1,0 +1,29 @@
+global:
+  scrape_interval: 5s      # Short scrape interval for real-time viva presentation graphs
+  evaluation_interval: 5s
+
+scrape_configs:
+  # Scrape Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Scrape User Service Metrics
+  - job_name: 'user-service'
+    static_configs:
+      - targets: ['user-service:5001']
+
+  # Scrape Product Service Metrics
+  - job_name: 'product-service'
+    static_configs:
+      - targets: ['product-service:5002']
+
+  # Scrape Order Service Metrics
+  - job_name: 'order-service'
+    static_configs:
+      - targets: ['order-service:5003']
+
+  # Scrape Notification Service Metrics
+  - job_name: 'notification-service'
+    static_configs:
+      - targets: ['notification-service:5004']

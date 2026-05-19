@@ -1,0 +1,169 @@
+version: '3.8'
+
+networks:
+  ecom-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+  rabbitmq_data:
+
+services:
+  # ====================================================
+  # Infrastructure Databases & Message Brokers
+  # ====================================================
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - ecom-network
+    restart: always
+
+  rabbitmq:
+    image: rabbitmq:3.11-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"       # Message transmission port
+      - "15672:15672"     # Management dashboard port
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - ecom-network
+    restart: always
+
+  # ====================================================
+  # Microservices Layer
+  # ====================================================
+  user-service:
+    build:
+      context: ./src/user-service
+      dockerfile: Dockerfile
+    container_name: user-service
+    ports:
+      - "5001:5001"
+    environment:
+      - PORT=5001
+      - MONGO_URI=mongodb://mongodb:27017/ecom_user
+      - JWT_SECRET=viva_lab_devops_secret_key_2026
+    depends_on:
+      - mongodb
+    networks:
+      - ecom-network
+    restart: always
+
+  product-service:
+    build:
+      context: ./src/product-service
+      dockerfile: Dockerfile
+    container_name: product-service
+    ports:
+      - "5002:5002"
+    environment:
+      - PORT=5002
+      - MONGO_URI=mongodb://mongodb:27017/ecom_product
+    depends_on:
+      - mongodb
+    networks:
+      - ecom-network
+    restart: always
+
+  order-service:
+    build:
+      context: ./src/order-service
+      dockerfile: Dockerfile
+    container_name: order-service
+    ports:
+      - "5003:5003"
+    environment:
+      - PORT=5003
+      - MONGO_URI=mongodb://mongodb:27017/ecom_order
+      - RABBITMQ_URI=amqp://rabbitmq:5672
+      - PRODUCT_SERVICE_URL=http://product-service:5002
+      - NOTIFICATION_SERVICE_URL=http://notification-service:5004
+    depends_on:
+      - mongodb
+      - rabbitmq
+      - product-service
+      - notification-service
+    networks:
+      - ecom-network
+    restart: always
+
+  notification-service:
+    build:
+      context: ./src/notification-service
+      dockerfile: Dockerfile
+    container_name: notification-service
+    ports:
+      - "5004:5004"
+    environment:
+      - PORT=5004
+      - RABBITMQ_URI=amqp://rabbitmq:5672
+    depends_on:
+      - rabbitmq
+    networks:
+      - ecom-network
+    restart: always
+
+  # ====================================================
+  # User Interface (Frontend Static React Application)
+  # ====================================================
+  frontend:
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    networks:
+      - ecom-network
+    restart: always
+
+  # ====================================================
+  # Central Nginx API Gateway Router
+  # ====================================================
+  gateway:
+    build:
+      context: ./src/gateway
+      dockerfile: Dockerfile
+    container_name: gateway
+    ports:
+      - "8080:8080" # Unified entry point for development
+    depends_on:
+      - frontend
+      - user-service
+      - product-service
+      - order-service
+      - notification-service
+    networks:
+      - ecom-network
+    restart: always
+
+  # ====================================================
+  # Centralized Prometheus & Grafana Monitoring
+  # ====================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - ecom-network
+    restart: always
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3001:3000" # Mapped to port 3001 to prevent conflict with direct frontend
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - ecom-network
+    restart: always
