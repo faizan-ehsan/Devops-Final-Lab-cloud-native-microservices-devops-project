@@ -81,11 +81,13 @@ services:
   # ----------------------------------------------------
   - type: web
     name: octane-frontend-ui
-    env: static
+    runtime: static
     plan: free
     rootDir: src/frontend
     buildCommand: npm ci && npm run build
-    publishDir: dist
+    staticPublishPath: dist
     headers:
-      - key: Cache-Control
+      - path: /*
+        name: Cache-Control
         value: public, max-age=31536000
+
