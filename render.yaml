@@ -82,7 +82,6 @@ services:
   - type: web
     name: octane-frontend-ui
     runtime: static
-    plan: free
     rootDir: src/frontend
     buildCommand: npm ci && npm run build
     staticPublishPath: dist
