@@ -9,7 +9,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install all development and runtime dependencies
-RUN npm ci
+RUN npm install
 
 # Copy React code and build configurations
 COPY . .
