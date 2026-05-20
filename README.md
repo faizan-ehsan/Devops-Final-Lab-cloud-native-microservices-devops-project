@@ -4,7 +4,8 @@
 **Supervisor:** M Khizar Hayat  
 **Student:** Faizan Ehsan (Roll No: FA23-BCS-183)  
 **Repository Role:** Team Lead (Assigned Page: Home Page Dashboard & CI/CD Pipelines)  
-**Repository URL:** [faizan-ehsan/Devops-Final-Lab-cloud-native-microservices-devops-project](https://github.com/faizan-ehsan/Devops-Final-Lab-cloud-native-microservices-devops-project)
+**Repository URL:** [faizan-ehsan/Devops-Final-Lab-cloud-native-microservices-devops-project](https://github.com/faizan-ehsan/Devops-Final-Lab-cloud-native-microservices-devops-project)  
+**Render Blueprint ID:** `exs-d86fmo3tqb8s73fgh05g`
 
 ---
 
