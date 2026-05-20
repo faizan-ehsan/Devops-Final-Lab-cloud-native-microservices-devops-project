@@ -7,21 +7,15 @@ echo    Student: Faizan Ehsan (Roll: FA23-BCS-183)
 echo =====================================================================
 echo.
 echo This script will use your active Docker Desktop to:
-echo 1. Log you into your Docker Hub account (faizan212)
-echo 2. Build production-optimized images for all 5 microservices
-echo 3. Automatically push them to your Docker Hub repository!
+echo 1. Build production-optimized images for all 5 microservices
+echo 2. Automatically push them to your Docker Hub repository!
 echo.
-echo =====================================================================
-echo STEP 1: LOGGING INTO DOCKER HUB
+echo Please ensure you are logged in to your Docker Desktop GUI
+echo (Click 'Sign In' in top-right of Docker Desktop to log in automatically).
 echo =====================================================================
 echo.
-docker login -u faizan212
-if %ERRORLEVEL% NEQ 0 (
-    echo.
-    echo [ERROR] Docker Login failed. Please check your credentials and try again.
-    pause
-    exit /b
-)
+pause
+echo.
 
 echo.
 echo =====================================================================
