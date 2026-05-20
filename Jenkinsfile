@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         // Global Registry & Image Definitions
-        DOCKER_REGISTRY      = "docker.io/mydevopsrepo"
+        DOCKER_REGISTRY      = "docker.io/faizan212"
         DOCKER_CREDENTIALS_ID= "docker-hub-credentials"
         KUBECONFIG_CRED_ID   = "k8s-kubeconfig"
         

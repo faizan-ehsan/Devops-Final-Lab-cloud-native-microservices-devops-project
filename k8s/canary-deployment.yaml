@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: user-service
-        image: myrepo/user-service:v1.0.0
+        image: faizan212/user-service:v1.0.0
         ports:
         - containerPort: 5001
         resources:
@@ -67,7 +67,7 @@ spec:
     spec:
       containers:
       - name: user-service
-        image: myrepo/user-service:v1.1.0
+        image: faizan212/user-service:v1.1.0
         ports:
         - containerPort: 5001
         resources:
