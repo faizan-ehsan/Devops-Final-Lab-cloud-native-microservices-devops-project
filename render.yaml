@@ -18,7 +18,7 @@ services:
       - key: MONGO_URI
         value: mongodb+srv://dbuser:securepassword@cluster.mongodb.net/user_db
       - key: JWT_SECRET
-        sync: true # Requires setting inside Render UI Dashboard
+        value: cuilahore_devops_secret_key_2026_octane
 
   # ----------------------------------------------------
   # 2. Product Catalogue Microservice
